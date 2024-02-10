@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../components/dialog_box_page.dart';
-import '../components/todo_page.dart';
+import '../components/todo_tile.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -53,6 +53,13 @@ class _HomePageState extends State<HomePage> {
     Navigator.of(context).pop();
   }
 
+  void deleteItem(int index) {
+    setState(() {
+      todos.removeAt(index);
+    });
+  }
+  // End functions
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,6 +87,7 @@ class _HomePageState extends State<HomePage> {
             taskName: todos[index][0],
             isTaskChecked: todos[index][1],
             onTaskChanged: (value) => checkTaskChecked(value, index),
+            deleteFunction: (context) => deleteItem(index),
           );
         },
       ),
