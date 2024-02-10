@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:todo_app/data/database.dart';
 import '../components/dialog_box_page.dart';
 import '../components/todo_tile.dart';
+import '../helpers/constants.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,16 +13,25 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // reference the hive box
+  final _myBox = Hive.box(hiveBoxName);
+
+  // Db List Access
+  ToDoDataBase db = ToDoDataBase();
+
   // controller of text alert textbox
   final _controller = TextEditingController();
 
-  // list of todos
-  List todos = [
-    ["Make Tutorial", true],
-    ["Do Exercices", false],
-    ["Do Exercices 2", true],
-    ["Do Exercices 3", true],
-  ];
+  @override
+  void initState() {
+    // if this is the 1st time ever opening the app, the create default data
+    if (_myBox.get(hiveToDoList) == null) {
+      db.createInitialData();
+    } else {
+      db.loadData();
+    }
+    super.initState();
+  }
 
   // Fuctions
   void checkTaskChecked(bool? afterChanged, int index) {
@@ -27,8 +39,10 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     setState(() {
-      todos[index][1] = afterChanged;
+      db.toDoList[index][1] = afterChanged;
     });
+
+    db.updateDataBase();
   }
 
   void createANewTask() {
@@ -46,17 +60,20 @@ class _HomePageState extends State<HomePage> {
 
   void saveNewTask() {
     setState(() {
-      todos.add([_controller.text, false]);
+      db.toDoList.add([_controller.text, false]);
       _controller.clear();
     });
 
+    db.updateDataBase();
     Navigator.of(context).pop();
   }
 
   void deleteItem(int index) {
     setState(() {
-      todos.removeAt(index);
+      db.toDoList.removeAt(index);
     });
+
+    db.updateDataBase();
   }
   // End functions
 
@@ -81,11 +98,11 @@ class _HomePageState extends State<HomePage> {
 
       // Body
       body: ListView.builder(
-        itemCount: todos.length,
+        itemCount: db.toDoList.length,
         itemBuilder: (context, index) {
           return ToDoTile(
-            taskName: todos[index][0],
-            isTaskChecked: todos[index][1],
+            taskName: db.toDoList[index][0],
+            isTaskChecked: db.toDoList[index][1],
             onTaskChanged: (value) => checkTaskChecked(value, index),
             deleteFunction: (context) => deleteItem(index),
           );
